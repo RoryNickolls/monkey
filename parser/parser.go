@@ -36,7 +36,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	program.Statements = []ast.Statement{}
 
 	for !p.curTokenIs(token.EOF) {
-		stmt := p.parseStatements()
+		stmt := p.parseStatement()
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
@@ -45,13 +45,28 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) parseStatements() ast.Statement {
+func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
+}
+
+func (p *Parser) parseReturnStatement() ast.Statement {
+	stmt := &ast.ReturnStatement{Token: p.curToken}
+
+	p.nextToken()
+
+	// Skip expression (return <expression>)
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
